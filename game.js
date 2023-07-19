@@ -1,114 +1,195 @@
+class TypingGame {
 
-const div = document.getElementById('gamebox');
-const domrect = div.getBoundingClientRect();
-const borderSize = 2;
-const alphabetLetterSize = 17;
+    constructor() {
+        this.DIV = document.getElementById('gamebox');
+        this.SCORE_ELEMENT = document.getElementById('score');
+        this.DOMRECT = this.DIV.getBoundingClientRect();
+        this.BORDER_SIZE = 2;
+        this.ALPHABET_LETTER_SIZE = 17;
+        this.BASE_MAKE_TIME = 800;
+        this.BASE_MOVE_TIME = 30;
+        this.CHAR_LIST = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-const minX = domrect.x + borderSize;
-const maxX = domrect.x + domrect.width - borderSize - alphabetLetterSize - 10;
-const maxY = domrect.height - borderSize + 10;
-const makeTime = 800;
-const moveTime = 30;
+        this.ACTIONS = {
+            PAUSE: '1',
+            UNPAUSE: '2',
+            RESTART: '3'
+        };
 
-const charList = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        this.gameState = {
+            alphabetLetterList: [],
+            makeInterval: null,
+            moveInterval: null,
+            score: 0,
+            isGamePaused: false,
+            isPlayerPaused: false,
+            isSystemPaused: false,
+            makeTime: this.BASE_MAKE_TIME,
+            moveTime: this.BASE_MOVE_TIME,
+            minX: this.DOMRECT.x + this.BORDER_SIZE,
+            maxX: this.DOMRECT.x + this.DOMRECT.width - this.BORDER_SIZE - this.ALPHABET_LETTER_SIZE - 10,
+            maxY: this.DOMRECT.y + this.DOMRECT.height - this.BORDER_SIZE
+        };
+    }
 
-let alphabetLetterList = [];
-let makeInterval = null;
-let moveInterval = null;
+    rand(min, max) {
+        return Math.floor(Math.random() * (max - min)) + min;
+    }
+    
+    clearIntervals() {
+        clearInterval(this.gameState.makeInterval);
+        clearInterval(this.gameState.moveInterval);
+        this.gameState.makeInterval = null;
+        this.gameState.moveInterval = null;
+    }
 
-function init() {
-    makeInterval = setInterval(() => {
-        const x = rand(minX, maxX);
-        createAlphabetLetter(x);    
-    }, makeTime);
+    removeElement(element) {
+        this.DIV.removeChild(element);
+    }
 
-    moveInterval = setInterval(() => {
-        alphabetLetterList.forEach(element => {
-            const rect = element.getBoundingClientRect();
-            let top = rect.top + 3;
+    updateScoreDisplay() {
+        this.SCORE_ELEMENT.innerText = `Score: ${this.gameState.score}`;
+    }
 
-            element.style.top = `${top}px`;
+    createAlphabetLetter(x) {
+        const element = document.createElement('div');
+        element.classList.add('alphabet-letter');
+        element.style.left = `${x}px`;
+        element.style.top = '0px';
 
-            if (rect.top + rect.height >= maxY) {
-                div.removeChild(element);
-                const index = alphabetLetterList.indexOf(element);
-                alphabetLetterList.splice(index, 1);
+        const char = this.CHAR_LIST[this.rand(0, this.CHAR_LIST.length)];
+        element.innerHTML = char;
+
+        this.DIV.appendChild(element);
+        this.gameState.alphabetLetterList.push(element);
+    }
+
+    init() {
+        this.makeIntervals();
+        this.moveIntervals();
+    }
+
+    pauseGame() {
+        if (!this.gameState.isGamePaused) {
+            this.gameState.isPlayerPaused = true;
+            this.gameState.isGamePaused = true;
+            this.clearIntervals();
+        }
+    }
+
+    unpauseGame() {
+        if (this.gameState.isPlayerPaused && this.gameState.isGamePaused && !this.gameState.isSystemPaused) {
+            this.gameState.isPlayerPaused = false;
+            this.gameState.isGamePaused = false;
+            this.init();
+        }
+    }
+
+    systemPause() {
+        if (!this.gameState.isGamePaused) {
+            this.gameState.isSystemPaused = true;
+            this.gameState.isGamePaused = true;
+            this.clearIntervals();
+        }
+    }
+
+    systemUnpause() {
+        if (this.gameState.isSystemPaused && this.gameState.isGamePaused) {
+            this.gameState.isSystemPaused = false;
+            this.gameState.isGamePaused = false;
+            this.init();
+        }
+    }
+
+    resetGame() {
+        this.clearIntervals();
+        this.removeAllElements();
+        this.resetScore();
+        this.init();
+    }
+
+    makeIntervals() {
+        this.gameState.makeInterval = setInterval(() => {
+            const x = this.rand(this.gameState.minX, this.gameState.maxX);
+            this.createAlphabetLetter(x);
+        }, this.gameState.makeTime);
+    }
+
+    moveIntervals() {
+        this.gameState.moveInterval = setInterval(() => {
+            this.gameState.alphabetLetterList = this.gameState.alphabetLetterList.filter(element => {
+                const rect = element.getBoundingClientRect();
+                let top = rect.top + 3;
+
+                element.style.top = `${top}px`;
+
+                if (rect.top + rect.height >= this.gameState.maxY) {
+                    this.removeElement(element);
+                    return false;
+                }
+
+                return true;
+            });
+        }, this.gameState.moveTime);
+    }
+
+    removeAllElements() {
+        this.gameState.alphabetLetterList.forEach(this.removeElement.bind(this));
+        this.gameState.alphabetLetterList = [];
+    }
+
+    onKeyPress(event) {
+        const keyName = event.key.toUpperCase();
+
+        if (keyName === this.ACTIONS.PAUSE) {
+            this.pauseGame();
+        } else if (keyName === this.ACTIONS.UNPAUSE) {
+            this.unpauseGame();
+        } else if (keyName === this.ACTIONS.RESTART) {
+            this.resetGame();
+        } else {
+            this.checkAndRemoveLetter(keyName);
+
+            if (this.gameState.isGamePaused) {
+                this.unpauseGame();
             }
-        });
-    }, moveTime);
-}
+        }
+    }
 
-function pause() {
-    clearInterval(makeInterval);
-    clearInterval(moveInterval);
+    checkAndRemoveLetter(keyName) {
+        if (!this.gameState.isGamePaused && this.gameState.alphabetLetterList.length > 0) {
+            const alphabetLetter = this.gameState.alphabetLetterList[0];
+            if (alphabetLetter.innerHTML === keyName) {
+                this.removeElement(alphabetLetter);
+                this.gameState.alphabetLetterList.shift();
+                this.addScore(1);
+            }
+        }
+    }
 
-    makeInterval = null;
-    moveInterval = null;
-}
+    addScore(value) {
+        this.gameState.score += value;
+        this.updateScoreDisplay();
+    }
 
-function unpause() {
-    if (makeInterval == null && moveInterval == null) {
-        init();
+    resetScore() {
+        this.gameState.score = 0;
+        this.gameState.makeTime = this.BASE_MAKE_TIME;
+        this.gameState.moveTime = this.BASE_MOVE_TIME;
+        this.updateScoreDisplay();
+    }
+
+    handleVisibilityChange() {
+        if (document.visibilityState === 'hidden') {
+            this.systemPause();
+        } else if (document.visibilityState === 'visible') {
+            this.systemUnpause();
+        }
     }
 }
 
-function reset() {
-    clearInterval(makeInterval);
-    clearInterval(moveInterval);
+const game = new TypingGame();
+game.init();
 
-    makeInterval = null;
-    moveInterval = null;
-
-    alphabetLetterList.forEach((element) => {
-        div.removeChild(element);
-    });
-
-    alphabetLetterList = [];
-    init();
-}
-
-(async function() {
-
-    init();
-
-    document.addEventListener ('keypress', (event) => {
-        const keyName = event.key.toUpperCase();
-
-        if (keyName === '1') {
-            pause()
-        } else if (keyName === '2') {
-            unpause()
-        } else if (keyName === '3') {
-            reset()
-        }
-
-        if (alphabetLetterList.length > 0) {
-            const alphabetLetter = alphabetLetterList[0];
-            if (alphabetLetter.innerHTML === keyName) {
-                div.removeChild(alphabetLetter);
-                alphabetLetterList.splice(0, 1);
-            }
-        }
-    });
-}());
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function rand(min, max) {
-    return Math.floor(Math.random() * (max - min) ) + min;
-}
-
-function createAlphabetLetter(x) {
-    const element = document.createElement('div');
-    element.classList.add('alphabet-letter');
-    element.style.left = `${x}px`;
-    element.style.top = '0px';
-    
-    const char = charList[rand(0, charList.length)];
-    element.innerHTML = char;
-
-    div.appendChild(element);
-    alphabetLetterList.push(element);
-}
+document.addEventListener('keypress', (event) => game.onKeyPress(event));
+document.addEventListener('visibilitychange', () => game.handleVisibilityChange());
