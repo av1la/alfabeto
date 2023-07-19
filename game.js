@@ -1,5 +1,9 @@
 class TypingGame {
-
+    /**
+     * Construtor da classe TypingGame.
+     *
+     * Inicializa as variáveis do jogo e define o estado inicial.
+     */
     constructor() {
         this.DIV = document.getElementById('gamebox');
         this.SCORE_ELEMENT = document.getElementById('score');
@@ -32,10 +36,20 @@ class TypingGame {
         };
     }
 
+    /**
+     * Função rand(min, max).
+     *
+     * Retorna um número aleatório entre min e max.
+     */
     rand(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
     }
-    
+
+    /**
+     * Função clearIntervals().
+     *
+     * Limpa os intervalos de geração e movimentação das letras.
+     */
     clearIntervals() {
         clearInterval(this.gameState.makeInterval);
         clearInterval(this.gameState.moveInterval);
@@ -43,14 +57,29 @@ class TypingGame {
         this.gameState.moveInterval = null;
     }
 
+    /**
+     * Função removeElement(element).
+     *
+     * Remove um elemento específico da DIV do jogo.
+     */
     removeElement(element) {
         this.DIV.removeChild(element);
     }
 
+    /**
+     * Função updateScoreDisplay().
+     *
+     * Atualiza a exibição do placar na página.
+     */
     updateScoreDisplay() {
         this.SCORE_ELEMENT.innerText = `Score: ${this.gameState.score}`;
     }
 
+    /**
+     * Função createAlphabetLetter(x).
+     *
+     * Cria uma nova letra do alfabeto na posição x e adiciona-a à DIV do jogo.
+     */
     createAlphabetLetter(x) {
         const element = document.createElement('div');
         element.classList.add('alphabet-letter');
@@ -64,11 +93,21 @@ class TypingGame {
         this.gameState.alphabetLetterList.push(element);
     }
 
+    /**
+     * Função init().
+     *
+     * Inicializa o jogo configurando os intervalos de geração e movimentação das letras.
+     */
     init() {
         this.makeIntervals();
         this.moveIntervals();
     }
 
+    /**
+     * Função pauseGame().
+     *
+     * Pausa o jogo se o jogador solicitou a pausa.
+     */
     pauseGame() {
         if (!this.gameState.isGamePaused) {
             this.gameState.isPlayerPaused = true;
@@ -77,6 +116,11 @@ class TypingGame {
         }
     }
 
+    /**
+     * Função unpauseGame().
+     *
+     * Despausa o jogo se o jogador solicitou a retomada.
+     */
     unpauseGame() {
         if (this.gameState.isPlayerPaused && this.gameState.isGamePaused && !this.gameState.isSystemPaused) {
             this.gameState.isPlayerPaused = false;
@@ -85,6 +129,11 @@ class TypingGame {
         }
     }
 
+    /**
+     * Função systemPause().
+     *
+     * Pausa o jogo se o sistema solicitou a pausa.
+     */
     systemPause() {
         if (!this.gameState.isGamePaused) {
             this.gameState.isSystemPaused = true;
@@ -93,6 +142,11 @@ class TypingGame {
         }
     }
 
+    /**
+     * Função systemUnpause().
+     *
+     * Despausa o jogo se o sistema solicitou a retomada.
+     */
     systemUnpause() {
         if (this.gameState.isSystemPaused && this.gameState.isGamePaused) {
             this.gameState.isSystemPaused = false;
@@ -101,6 +155,11 @@ class TypingGame {
         }
     }
 
+    /**
+     * Função resetGame().
+     *
+     * Reinicia o jogo, limpando todos os intervalos, removendo todas as letras e reiniciando o placar.
+     */
     resetGame() {
         this.clearIntervals();
         this.removeAllElements();
@@ -108,6 +167,11 @@ class TypingGame {
         this.init();
     }
 
+    /**
+     * Função makeIntervals().
+     *
+     * Define o intervalo para gerar novas letras.
+     */
     makeIntervals() {
         this.gameState.makeInterval = setInterval(() => {
             const x = this.rand(this.gameState.minX, this.gameState.maxX);
@@ -115,6 +179,11 @@ class TypingGame {
         }, this.gameState.makeTime);
     }
 
+    /**
+     * Função moveIntervals().
+     *
+     * Define o intervalo para mover as letras para baixo.
+     */
     moveIntervals() {
         this.gameState.moveInterval = setInterval(() => {
             this.gameState.alphabetLetterList = this.gameState.alphabetLetterList.filter(element => {
@@ -133,11 +202,22 @@ class TypingGame {
         }, this.gameState.moveTime);
     }
 
+    /**
+     * Função removeAllElements().
+     *
+     * Remove todas as letras da DIV do jogo.
+     */
     removeAllElements() {
         this.gameState.alphabetLetterList.forEach(this.removeElement.bind(this));
         this.gameState.alphabetLetterList = [];
     }
 
+    /**
+     * Função onKeyPress(event).
+     *
+     * Lida com o evento de pressionar uma tecla, o que pode resultar em pausar, despausar, reiniciar o jogo
+     * ou remover uma letra correspondente.
+     */
     onKeyPress(event) {
         const keyName = event.key.toUpperCase();
 
@@ -150,12 +230,18 @@ class TypingGame {
         } else {
             this.checkAndRemoveLetter(keyName);
 
+            // Garante que o jogo retorne caso o jogador pressione a tecla correspondente na tela.
             if (this.gameState.isGamePaused) {
                 this.unpauseGame();
             }
         }
     }
 
+    /**
+     * Função checkAndRemoveLetter(keyName).
+     *
+     * Verifica se a tecla pressionada corresponde à primeira letra na fila. Se sim, remove a letra e aumenta a pontuação.
+     */
     checkAndRemoveLetter(keyName) {
         if (!this.gameState.isGamePaused && this.gameState.alphabetLetterList.length > 0) {
             const alphabetLetter = this.gameState.alphabetLetterList[0];
@@ -167,11 +253,22 @@ class TypingGame {
         }
     }
 
+    /**
+     * Função addScore(value).
+     *
+     * Adiciona uma quantidade específica de pontos à pontuação do jogador e atualiza a exibição do placar.
+     */
     addScore(value) {
         this.gameState.score += value;
         this.updateScoreDisplay();
     }
 
+    /**
+     * Função resetScore().
+     *
+     * Reinicia a pontuação e as velocidades de geração e movimentação das letras para seus valores iniciais.
+     * Também atualiza a exibição do placar.
+     */
     resetScore() {
         this.gameState.score = 0;
         this.gameState.makeTime = this.BASE_MAKE_TIME;
@@ -179,6 +276,12 @@ class TypingGame {
         this.updateScoreDisplay();
     }
 
+    /**
+     * Função handleVisibilityChange().
+     *
+     * Lida com a mudança de visibilidade da página. Se a página ficar oculta, pausa o jogo.
+     * Se a página ficar visível, retoma o jogo.
+     */
     handleVisibilityChange() {
         if (document.visibilityState === 'hidden') {
             this.systemPause();
@@ -188,6 +291,7 @@ class TypingGame {
     }
 }
 
+// Iniciando o jogo...
 const game = new TypingGame();
 game.init();
 
