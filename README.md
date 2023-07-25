@@ -15,6 +15,6 @@ use as teclas [A-Z] para evitar que as letras ultrapassem a linha vermelha
 ___
 
 ### tarefas para v2
-- [ ] criar placar
-- [ ] criar legenda com atalhos para pausar, resetar e despausar
+- [x] criar placar
+- [x] criar legenda com atalhos para pausar, resetar e despausar
 - [ ] aumentar dificuldade de acordo com a pontuação
