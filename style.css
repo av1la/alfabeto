@@ -21,3 +21,27 @@ body {
     height: 15px;
     /* border: 1px solid black; */
 }
+
+#score {
+    font-size: 24px;
+    color: #333;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 2;
+}
+
+#instructions {
+    font-size: 16px;
+    color: #666;
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    z-index: 2;
+}
+
+#instructions h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
+}
